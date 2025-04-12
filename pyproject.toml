@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=70.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rabbitmq-client"
+version = "1.0.1"
+description = "A simple and lightweight wrapper around aio-pika"
+authors = [
+  { name="CheXnik", email="petrichenko8502@gmail.com" },
+  { name="Karnosio", email="karnosio@ukr.net" }
+]
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+dependencies = [
+  "aio-pika>=9.5.5"
+]
+
+[project.urls]
+homepage = "https://github.com/BDI-OFFICIAL/RabbitMQClient"

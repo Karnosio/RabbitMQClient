@@ -17,6 +17,7 @@ class Client(ABC):
         self.connection = None
         self.channel = None
         self.exchange = None
+        self.queues = {}
 
     async def connect(self, max_retries: int = 15, retry_delay: int = 3) -> None:
         for attempt in range(max_retries):
@@ -39,18 +40,24 @@ class Client(ABC):
 
                 await asyncio.sleep(retry_delay)
 
+    async def get_or_create_queue(self, queue_name: str) -> aio_pika.Queue:
+        if queue_name not in self.queues:
+            self.queues[queue_name] = await self.channel.declare_queue(name=queue_name, durable=True)
+
+        return self.queues[queue_name]
+
     async def send(self, message: Message, queue_name: str):
         if not self.connection:
             raise ConnectionError('You need to have at least one connection active!')
 
-        queue = await self.channel.declare_queue(name=queue_name, durable=True)
+        queue = await self.get_or_create_queue(queue_name)
 
         await self.exchange.publish(
             message=message,
             routing_key=queue.name
         )
 
-        logger.info(f'- [x] Sent: {message.body}')
+        logger.debug(f'- [x] Sent: {message.body}')
 
     async def listen_messages(self, queue_name: str, callback_func: callable):
         if not self.connection:
@@ -61,5 +68,5 @@ class Client(ABC):
 
         await queue.consume(callback_func)
 
-        logger.info('- [*] Waiting for messages. To exit press CTRL+C')
+        logger.debug('- [*] Waiting for messages. To exit press CTRL+C')
         await asyncio.Future()

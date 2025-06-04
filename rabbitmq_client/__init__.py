@@ -1,5 +1,5 @@
-from .client import Client
+from .client import RabbitMQClient
 
 __all__ = [
-    'Client'
+    'RabbitMQClient'
 ]

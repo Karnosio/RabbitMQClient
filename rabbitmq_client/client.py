@@ -4,6 +4,7 @@ from typing import Optional, Callable
 
 import aio_pika
 from aio_pika import Message, DeliveryMode
+from aio_pika.abc import AbstractRobustChannel, AbstractRobustExchange, AbstractRobustConnection
 from aio_pika.patterns import RPC
 from aiormq import AMQPConnectionError
 
@@ -15,9 +16,9 @@ class RabbitMQClient:
         self.url = url
         self.exchange_name = exchange_name
         self.prefetch_count = prefetch_count
-        self.connection = None
-        self.channel = None
-        self.exchange = None
+        self.connection: Optional[AbstractRobustConnection] = None
+        self.channel: Optional[AbstractRobustChannel] = None
+        self.exchange: Optional[AbstractRobustExchange] = None
         self.rpc: Optional[RPC] = None
         self.queues = {}
 
@@ -31,7 +32,7 @@ class RabbitMQClient:
                 await self.channel.set_qos(prefetch_count=self.prefetch_count)
 
                 if use_rpc:
-                    self.rpc = await RPC.create(self.channel)
+                    self.rpc = await RPC.create(self.channel, auto_delete=True, exclusive=True)
 
                 logger.info(f'RabbitMQClient is ready to accept RabbitMQ connections')
 
